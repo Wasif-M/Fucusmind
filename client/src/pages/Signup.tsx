@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -108,6 +108,11 @@ export default function Signup() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (user) return <Redirect to="/chat" />;
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
   const toggleFocusArea = (id: string) => {
     setFocusAreas((prev) =>
