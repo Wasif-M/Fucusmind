@@ -419,57 +419,5 @@ export async function registerRoutes(
     }
   });
 
-  // Personalized Chat - Get conversations for current user
-  app.get("/api/chat/conversations", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    try {
-      const userId = (req.user as any).id;
-      const convs = await chatStorage.getConversationsByUser(userId);
-      res.json(convs);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch conversations" });
-    }
-  });
-
-  // Personalized Chat - Create conversation
-  app.post("/api/chat/conversations", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    try {
-      const userId = (req.user as any).id;
-      const conversation = await chatStorage.createConversation(req.body.title || "New Chat", userId);
-      res.status(201).json(conversation);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create conversation" });
-    }
-  });
-
-  // Personalized Chat - Get conversation with messages (user-scoped)
-  app.get("/api/chat/conversations/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    try {
-      const id = parseInt(req.params.id);
-      const userId = (req.user as any).id;
-      const conversation = await chatStorage.getConversation(id);
-      if (!conversation || conversation.userId !== userId) return res.status(404).json({ message: "Not found" });
-      const msgs = await chatStorage.getMessagesByConversation(id);
-      res.json({ ...conversation, messages: msgs });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch conversation" });
-    }
-  });
-
-  // Personalized Chat - Delete conversation (user-scoped)
-  app.delete("/api/chat/conversations/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    try {
-      const id = parseInt(req.params.id);
-      const userId = (req.user as any).id;
-      await chatStorage.deleteConversationForUser(id, userId);
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete conversation" });
-    }
-  });
-
   return httpServer;
 }

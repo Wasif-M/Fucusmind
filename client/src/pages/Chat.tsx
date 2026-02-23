@@ -223,14 +223,24 @@ export default function Chat() {
 
   const sendMessage = async () => {
     if (!input.trim() || isStreaming) return;
-    if (!activeConversationId) {
-      const res = await apiRequest("POST", "/api/chat/conversations", { title: input.slice(0, 40) });
-      const conv = await res.json();
-      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
-      setActiveConversationId(conv.id);
-      sendToConversation(conv.id, input.trim());
-    } else {
-      sendToConversation(activeConversationId, input.trim());
+    
+    try {
+      if (!activeConversationId) {
+        console.log("Creating new conversation...");
+        const res = await apiRequest("POST", "/api/chat/conversations", { title: input.slice(0, 40) });
+        const conv = await res.json();
+        console.log("Conversation created:", conv);
+        queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
+        setActiveConversationId(conv.id);
+        await sendToConversation(conv.id, input.trim());
+      } else {
+        await sendToConversation(activeConversationId, input.trim());
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setIsStreaming(false);
+      setStreamingContent("");
+      alert("Failed to send message. Check console for details.");
     }
   };
 
@@ -254,7 +264,10 @@ export default function Chat() {
     setTimeout(scrollToBottom, 50);
 
     try {
-      const response = await fetch(getApiUrl(`/api/chat/${convId}/messages`), {
+      const url = getApiUrl(`/api/chat/${convId}/messages`);
+      console.log("Sending message to:", url);
+      
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
@@ -262,7 +275,9 @@ export default function Chat() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to send message");
+        const errorText = await response.text();
+        console.error(`API error ${response.status}:`, errorText);
+        throw new Error(`Failed to send message: ${response.status}`);
       }
 
       const reader = response.body?.getReader();
@@ -307,8 +322,10 @@ export default function Chat() {
         }
       }
     } catch (error) {
+      console.error("Error in sendToConversation:", error);
       setIsStreaming(false);
       setStreamingContent("");
+      alert("Failed to send message. Check console for details.");
     }
   };
 
