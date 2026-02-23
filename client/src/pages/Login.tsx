@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { getApiUrl } from "@/lib/api-url";
 import { Redirect, useLocation } from "wouter";
 import { Mail, Lock, Loader2 } from "lucide-react";
 
@@ -29,7 +30,7 @@ export default function Login() {
     setError("");
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(getApiUrl("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
