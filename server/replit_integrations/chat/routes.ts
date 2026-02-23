@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { chatStorage } from "./storage";
+import { isAuthenticated } from "../auth/replitAuth";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -8,11 +9,17 @@ const openai = new OpenAI({
 });
 
 export function registerChatRoutes(app: Express): void {
-  // Get all conversations
-  app.get("/api/conversations", async (req: Request, res: Response) => {
+  // Get all conversations for authenticated user
+  app.get("/api/chat/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       const conversations = await chatStorage.getAllConversations();
-      res.json(conversations);
+      // Filter conversations by userId
+      const userConversations = conversations.filter((c: any) => c.userId === userId);
+      res.json(userConversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
       res.status(500).json({ error: "Failed to fetch conversations" });
@@ -20,11 +27,15 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Get single conversation with messages
-  app.get("/api/conversations/:id", async (req: Request, res: Response) => {
+  app.get("/api/chat/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       const id = parseInt(String(req.params.id));
       const conversation = await chatStorage.getConversation(id);
-      if (!conversation) {
+      if (!conversation || (conversation as any).userId !== userId) {
         return res.status(404).json({ error: "Conversation not found" });
       }
       const messages = await chatStorage.getMessagesByConversation(id);
@@ -35,11 +46,15 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Create new conversation
-  app.post("/api/conversations", async (req: Request, res: Response) => {
+  // Create new conversation for authenticated user
+  app.post("/api/chat/conversations", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       const { title } = req.body;
-      const conversation = await chatStorage.createConversation(title || "New Chat");
+      const conversation = await chatStorage.createConversation(title || "New Chat", userId);
       res.status(201).json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -48,9 +63,17 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Delete conversation
-  app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
+  app.delete("/api/chat/conversations/:id", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       const id = parseInt(String(req.params.id));
+      const conversation = await chatStorage.getConversation(id);
+      if (!conversation || (conversation as any).userId !== userId) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
       await chatStorage.deleteConversation(id);
       res.status(204).send();
     } catch (error) {
@@ -60,10 +83,20 @@ export function registerChatRoutes(app: Express): void {
   });
 
   // Send message and get AI response (streaming)
-  app.post("/api/conversations/:id/messages", async (req: Request, res: Response) => {
+  app.post("/api/chat/:id/messages", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
       const conversationId = parseInt(String(req.params.id));
       const { content } = req.body;
+
+      // Verify conversation belongs to user
+      const conversation = await chatStorage.getConversation(conversationId);
+      if (!conversation || (conversation as any).userId !== userId) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
 
       // Save user message
       await chatStorage.createMessage(conversationId, "user", content);

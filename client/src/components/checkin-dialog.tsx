@@ -35,12 +35,13 @@ export function CheckinDialog({ trigger, forDate }: { trigger?: React.ReactNode;
   });
 
   const onSubmit = (data: InsertCheckin) => {
-    const payload = isForToday
-      ? data
-      : { 
-          ...data, 
-          forDate: format(targetDate, "yyyy-MM-dd'T'23:59:59")
-        };
+    // Always send the date explicitly using user's local timezone
+    // Format: YYYY-MM-DDTHH:MM:SS to preserve timezone info
+    const isoDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);
+    const payload = {
+      ...data,
+      forDate: isoDate.toISOString().split('T')[0] + 'T23:59:59'
+    };
     mutate(payload as any, {
       onSuccess: () => {
         setOpen(false);
