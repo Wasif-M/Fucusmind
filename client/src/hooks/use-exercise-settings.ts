@@ -25,6 +25,10 @@ export function useExerciseSettings() {
 
   const { data: settings, isLoading } = useQuery<ExerciseSettings>({
     queryKey: ["/api/exercise-settings"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/exercise-settings");
+      return res.json();
+    },
   });
 
   const updateMutation = useMutation({
@@ -50,6 +54,10 @@ export function useExerciseFavorites() {
 
   const { data: favorites = [], isLoading } = useQuery<ExerciseFavorite[]>({
     queryKey: ["/api/favorites"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/favorites");
+      return res.json();
+    },
   });
 
   const addMutation = useMutation({
@@ -96,6 +104,10 @@ export function useExerciseSessions() {
 
   const { data: sessions = [], isLoading } = useQuery<ExerciseSession[]>({
     queryKey: ["/api/exercise-sessions"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/exercise-sessions");
+      return res.json();
+    },
   });
 
   const createMutation = useMutation({

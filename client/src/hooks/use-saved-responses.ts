@@ -14,6 +14,10 @@ export function useSavedResponses() {
 
   const { data: savedResponses = [], isLoading } = useQuery<SavedResponse[]>({
     queryKey: ["/api/saved-responses"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/saved-responses");
+      return res.json();
+    },
   });
 
   const saveMutation = useMutation({

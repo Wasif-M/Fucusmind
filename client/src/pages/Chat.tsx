@@ -154,10 +154,18 @@ export default function Chat() {
 
   const { data: conversations = [], isLoading: loadingConversations } = useQuery<Conversation[]>({
     queryKey: ["/api/chat/conversations"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/chat/conversations");
+      return res.json();
+    },
   });
 
   const { data: activeConversation, isLoading: loadingMessages } = useQuery<Conversation>({
     queryKey: ["/api/chat/conversations", activeConversationId],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/chat/conversations/${activeConversationId}`);
+      return res.json();
+    },
     enabled: !!activeConversationId,
   });
 
