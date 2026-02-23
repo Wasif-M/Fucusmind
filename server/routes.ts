@@ -69,7 +69,17 @@ export async function registerRoutes(
 
       let checkinDate: Date | undefined;
       if (forDate) {
-        checkinDate = new Date(forDate);
+        // Extract just the YYYY-MM-DD part from the forDate string
+        const dateMatch = forDate.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch) {
+          const [, dateStr] = dateMatch;
+          // Create a date at noon UTC to avoid timezone shift issues
+          // This ensures the date part stays consistent regardless of timezone
+          const [year, month, day] = dateStr.split('-').map(Number);
+          checkinDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+        } else {
+          checkinDate = new Date(forDate);
+        }
         const existing = await storage.getCheckinForDate(userId, checkinDate);
         if (existing) {
           return res.status(400).json({ message: "A check-in already exists for that day." });

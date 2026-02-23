@@ -56,8 +56,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCheckinToday(userId: string): Promise<Checkin | undefined> {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Use UTC to get today's date consistently
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    const day = now.getUTCDate();
+    const todayStart = new Date(Date.UTC(year, month, day, 0, 0, 0));
+    
     const [existing] = await db
       .select()
       .from(checkins)
@@ -71,10 +76,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCheckinForDate(userId: string, date: Date): Promise<Checkin | undefined> {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayEnd.getDate() + 1);
+    // Compare using UTC dates to avoid timezone issues
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const day = date.getUTCDate();
+    
+    const dayStart = new Date(Date.UTC(year, month, day, 0, 0, 0));
+    const dayEnd = new Date(Date.UTC(year, month, day + 1, 0, 0, 0));
+    
     const [existing] = await db
       .select()
       .from(checkins)

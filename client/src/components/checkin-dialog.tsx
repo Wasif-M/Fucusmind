@@ -37,7 +37,10 @@ export function CheckinDialog({ trigger, forDate }: { trigger?: React.ReactNode;
   const onSubmit = (data: InsertCheckin) => {
     const payload = isForToday
       ? data
-      : { ...data, forDate: format(targetDate, "yyyy-MM-dd") };
+      : { 
+          ...data, 
+          forDate: format(targetDate, "yyyy-MM-dd'T'23:59:59")
+        };
     mutate(payload as any, {
       onSuccess: () => {
         setOpen(false);
