@@ -13,6 +13,31 @@ declare module "http" {
   }
 }
 
+// CORS configuration for Vercel frontend
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://fucusmind.onrender.com',
+    process.env.FRONTEND_URL || '',
+    'http://localhost:5000',
+    'http://localhost:5173'
+  ].filter(Boolean);
+
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
 app.use(
   express.json({
     verify: (req, _res, buf) => {
