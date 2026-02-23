@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, InsertUserProfile } from "@shared/schema";
+import { getApiUrl } from "@/lib/api-url";
 
 async function fetchProfile(): Promise<UserProfile | null> {
-  const response = await fetch("/api/profile", {
+  const response = await fetch(getApiUrl("/api/profile"), {
     credentials: "include",
   });
 
@@ -18,7 +19,7 @@ async function fetchProfile(): Promise<UserProfile | null> {
 }
 
 async function updateProfile(data: Partial<InsertUserProfile>): Promise<UserProfile> {
-  const response = await fetch("/api/profile", {
+  const response = await fetch(getApiUrl("/api/profile"), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

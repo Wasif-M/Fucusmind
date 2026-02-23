@@ -3,9 +3,6 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // Use the API URL from environment variable, fallback to relative path for local dev
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-console.log('API_URL:', API_URL);
-console.log('VITE_API_URL env:', import.meta.env.VITE_API_URL);
-
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
