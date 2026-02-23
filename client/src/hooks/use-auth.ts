@@ -19,10 +19,14 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  await fetch(getApiUrl("/api/auth/logout"), {
+  const response = await fetch(getApiUrl("/api/auth/logout"), {
     method: "GET",
     credentials: "include",
   });
+
+  if (!response.ok) {
+    throw new Error(`Logout failed: ${response.status}`);
+  }
 }
 
 export function useAuth() {
@@ -37,6 +41,13 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
+      queryClient.setQueryData(["/api/auth/user"], null);
+      queryClient.clear();
+      window.location.href = "/";
+    },
+    onError: (error) => {
+      console.error("Logout error:", error);
+      // Still clear local data even if logout fails
       queryClient.setQueryData(["/api/auth/user"], null);
       queryClient.clear();
       window.location.href = "/";
