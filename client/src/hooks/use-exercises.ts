@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { type ExerciseCompletion, type ExerciseType } from "@shared/schema";
+import { getApiUrl } from "@/lib/api-url";
 import { useToast } from "@/hooks/use-toast";
 
 export function useExerciseCompletions() {
   return useQuery({
     queryKey: [api.exercises.list.path],
     queryFn: async () => {
-      const res = await fetch(api.exercises.list.path, { credentials: "include" });
+      const res = await fetch(getApiUrl(api.exercises.list.path), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch exercises");
       return res.json() as Promise<ExerciseCompletion[]>;
     },
@@ -20,7 +21,7 @@ export function useCompleteExercise() {
 
   return useMutation({
     mutationFn: async (exerciseType: string) => {
-      const res = await fetch(api.exercises.create.path, {
+      const res = await fetch(getApiUrl(api.exercises.create.path), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ exerciseType }),

@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { type InsertCheckin, type Checkin } from "@shared/schema";
+import { getApiUrl } from "@/lib/api-url";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCheckins() {
   return useQuery({
     queryKey: [api.checkins.list.path],
     queryFn: async () => {
-      const res = await fetch(api.checkins.list.path, { credentials: "include" });
+      const res = await fetch(getApiUrl(api.checkins.list.path), { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch checkins");
       return api.checkins.list.responses[200].parse(await res.json());
     },
@@ -22,7 +23,7 @@ export function useCreateCheckin() {
     mutationFn: async (data: InsertCheckin & { forDate?: string }) => {
       const { forDate, ...checkinData } = data;
       const validated = api.checkins.create.input.parse(checkinData);
-      const res = await fetch(api.checkins.create.path, {
+      const res = await fetch(getApiUrl(api.checkins.create.path), {
         method: api.checkins.create.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...validated, forDate }),

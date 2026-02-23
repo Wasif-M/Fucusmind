@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { getApiUrl } from "@/lib/api-url";
 
 import { Send, Plus, Trash2, MessageCircle, Loader2, Bookmark, BookmarkCheck, Mic, MicOff, Volume2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -233,7 +234,7 @@ export default function Chat() {
     setTimeout(scrollToBottom, 50);
 
     try {
-      const response = await fetch(`/api/chat/${convId}/messages`, {
+      const response = await fetch(getApiUrl(`/api/chat/${convId}/messages`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),

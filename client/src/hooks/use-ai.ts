@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@shared/routes";
+import { getApiUrl } from "@/lib/api-url";
 import { useToast } from "@/hooks/use-toast";
 
 export function useAnalyzeCheckin() {
@@ -7,7 +8,7 @@ export function useAnalyzeCheckin() {
 
   return useMutation({
     mutationFn: async (checkinId: number) => {
-      const res = await fetch(api.ai.analyze.path, {
+      const res = await fetch(getApiUrl(api.ai.analyze.path), {
         method: api.ai.analyze.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ checkinId }),
