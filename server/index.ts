@@ -16,8 +16,9 @@ declare module "http" {
 // CORS configuration for Vercel frontend
 app.use((req, res, next) => {
   const allowedOrigins = [
-    'https://fucusmind.onrender.com',
-    process.env.FRONTEND_URL || '',
+    'https://fucusmind-8668.vercel.app',  // Vercel frontend
+    'https://fucusmind.onrender.com',      // Self for WebSockets
+    process.env.FRONTEND_URL?.replace(/\/$/, ''),  // Environment variable (trim trailing slash)
     'http://localhost:5000',
     'http://localhost:5173'
   ].filter(Boolean);
@@ -25,11 +26,10 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   }
-  
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
