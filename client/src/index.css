@@ -54,11 +54,10 @@
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
-    font-family: var(--font-body);
+    @apply bg-background text-foreground font-body antialiased selection:bg-primary/30 selection:text-primary-foreground;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
   }
   
