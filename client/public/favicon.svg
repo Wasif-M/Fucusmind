@@ -1,0 +1,19 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c9a6ff" />
+      <stop offset="100%" stop-color="#9b6dff" />
+    </linearGradient>
+  </defs>
+  <!-- Outer circle -->
+  <circle cx="50" cy="50" r="44" stroke="url(#faviconGradient)" stroke-width="5" fill="none" />
+  <!-- Lotus petals -->
+  <path d="M50 16 C44 28 40 36 50 44 C60 36 56 28 50 16Z" fill="url(#faviconGradient)" />
+  <path d="M33 26 C29 38 33 46 45 46 C45 38 39 30 33 26Z" fill="url(#faviconGradient)" opacity="0.9" />
+  <path d="M67 26 C71 38 67 46 55 46 C55 38 61 30 67 26Z" fill="url(#faviconGradient)" opacity="0.9" />
+  <!-- Curved hands/waves -->
+  <path d="M20 50 Q30 56 40 50 Q32 60 20 56" fill="url(#faviconGradient)" opacity="0.8" />
+  <path d="M80 50 Q70 56 60 50 Q68 60 80 56" fill="url(#faviconGradient)" opacity="0.8" />
+  <!-- Water droplet -->
+  <path d="M50 50 C50 50 40 62 40 72 C40 79 44.5 84 50 84 C55.5 84 60 79 60 72 C60 62 50 50 50 50Z" fill="url(#faviconGradient)" />
+</svg>
