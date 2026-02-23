@@ -152,21 +152,33 @@ export default function Chat() {
     }
   }, [user, authLoading, setLocation]);
 
-  const { data: conversations = [], isLoading: loadingConversations } = useQuery<Conversation[]>({
+  const { data: conversations = [], isLoading: loadingConversations, error: conversationsError } = useQuery<Conversation[]>({
     queryKey: ["/api/chat/conversations"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/chat/conversations");
-      return res.json();
+      try {
+        const res = await apiRequest("GET", "/api/chat/conversations");
+        return res.json();
+      } catch (error) {
+        console.error("Failed to fetch conversations:", error);
+        throw error;
+      }
     },
+    retry: true,
   });
 
-  const { data: activeConversation, isLoading: loadingMessages } = useQuery<Conversation>({
+  const { data: activeConversation, isLoading: loadingMessages, error: messagesError } = useQuery<Conversation>({
     queryKey: ["/api/chat/conversations", activeConversationId],
     queryFn: async () => {
-      const res = await apiRequest("GET", `/api/chat/conversations/${activeConversationId}`);
-      return res.json();
+      try {
+        const res = await apiRequest("GET", `/api/chat/conversations/${activeConversationId}`);
+        return res.json();
+      } catch (error) {
+        console.error("Failed to fetch conversation messages:", error);
+        throw error;
+      }
     },
     enabled: !!activeConversationId,
+    retry: true,
   });
 
   const createConversation = useMutation({
@@ -351,6 +363,8 @@ export default function Chat() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-5 h-5 animate-spin text-[#9b6dff]" />
               </div>
+            ) : conversationsError ? (
+              <div className="text-[12px] text-red-400 text-center py-8 px-2">Error loading conversations. Please refresh the page.</div>
             ) : conversations.length === 0 ? (
               <p className="text-[12px] text-[#6b6b80] text-center py-8 px-2">No conversations yet. Start a new chat to begin.</p>
             ) : (
