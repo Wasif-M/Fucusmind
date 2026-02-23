@@ -1,6 +1,8 @@
 {
-  "buildCommand": "npm run build:client",
+  "buildCommand": "npm install --legacy-peer-deps && npx vite build",
   "outputDirectory": "dist/public",
+  "installCommand": "npm install --legacy-peer-deps",
+  "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
