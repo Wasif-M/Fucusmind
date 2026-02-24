@@ -12,10 +12,10 @@ import {
 import { ProfileSettingsDialog } from "@/components/profile-settings-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Loader2 } from "lucide-react";
 
 export function UserAvatarButton() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   const { profile } = useProfile();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -66,9 +66,18 @@ export function UserAvatarButton() {
             <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => logout()}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Sign out</span>
+          <DropdownMenuItem onClick={() => logout()} disabled={isLoggingOut}>
+            {isLoggingOut ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>Signing out...</span>
+              </>
+            ) : (
+              <>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </>
+            )}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

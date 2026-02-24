@@ -19,14 +19,25 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  const response = await fetch(getApiUrl("/api/auth/logout"), {
-    method: "GET",
+  console.log("[Auth] Logging out...");
+  const url = getApiUrl("/api/auth/logout");
+  console.log("[Auth] Logout endpoint:", url);
+  
+  const response = await fetch(url, {
+    method: "POST",
     credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
 
+  console.log("[Auth] Logout response status:", response.status);
+  
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error("[Auth] Logout failed:", response.status, errorText);
     throw new Error(`Logout failed: ${response.status}`);
   }
+  
+  console.log("[Auth] Logout successful");
 }
 
 export function useAuth() {

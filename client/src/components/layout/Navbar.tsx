@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Menu, X, Wind, BookOpen, MessageCircle } from "lucide-react";
+import { LogOut, LayoutDashboard, Menu, X, Wind, BookOpen, MessageCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -45,7 +45,7 @@ const marketingNavLinks = [
 ];
 
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location] = useLocation();
 
@@ -97,9 +97,15 @@ export function Navbar() {
                   variant="outline"
                   size="sm"
                   onClick={() => logout()}
+                  disabled={isLoggingOut}
                   className="border-white/10"
                 >
-                  <LogOut className="mr-2 h-3 w-3" /> Sign Out
+                  {isLoggingOut ? (
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  ) : (
+                    <LogOut className="mr-2 h-3 w-3" />
+                  )}
+                  {isLoggingOut ? "Signing out..." : "Sign Out"}
                 </Button>
               </div>
             </>
@@ -180,9 +186,15 @@ export function Navbar() {
                   <button
                     data-testid="button-mobile-sign-out"
                     onClick={() => logout()}
-                    className="w-full text-left p-3 rounded-lg text-red-400 font-medium flex items-center gap-3"
+                    disabled={isLoggingOut}
+                    className="w-full text-left p-3 rounded-lg text-red-400 font-medium flex items-center gap-3 disabled:opacity-50"
                   >
-                    <LogOut className="w-4 h-4" /> Sign Out
+                    {isLoggingOut ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <LogOut className="w-4 h-4" />
+                    )}
+                    {isLoggingOut ? "Signing out..." : "Sign Out"}
                   </button>
                 </>
               ) : (

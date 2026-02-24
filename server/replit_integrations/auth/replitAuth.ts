@@ -58,10 +58,25 @@ export async function setupAuth(app: Express) {
   );
 
   app.get("/api/auth/logout", (req, res) => {
-    req.logout(() => res.status(200).json({ success: true }));
+    console.log("[Auth] GET /api/auth/logout");
+    req.logout(() => {
+      console.log("[Auth] Logout successful");
+      res.status(200).json({ success: true });
+    });
+  });
+  app.post("/api/auth/logout", (req, res) => {
+    console.log("[Auth] POST /api/auth/logout");
+    req.logout(() => {
+      console.log("[Auth] Logout successful");
+      res.status(200).json({ success: true });
+    });
   });
   app.get("/api/logout", (req, res) => {
-    req.logout(() => res.status(200).json({ success: true }));
+    console.log("[Auth] GET /api/logout");
+    req.logout(() => {
+      console.log("[Auth] Logout successful");
+      res.status(200).json({ success: true });
+    });
   });
 }
 
