@@ -16,9 +16,8 @@ export function registerChatRoutes(app: Express): void {
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-      const conversations = await chatStorage.getAllConversations();
-      // Filter conversations by userId
-      const userConversations = conversations.filter((c: any) => c.userId === userId);
+      // Use the dedicated method that filters by userId
+      const userConversations = await chatStorage.getConversationsByUser(userId);
       res.json(userConversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
