@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Wind, MessageCircle, LogOut, BarChart3, Headphones, Loader2 } from "lucide-react";
+import { LayoutDashboard, Wind, MessageCircle, BarChart3, Headphones } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -46,7 +46,7 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-  const { user, logout, isLoggingOut } = useAuth();
+  const { user } = useAuth();
   const [location] = useLocation();
 
   return (
@@ -90,23 +90,9 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-3">
         {user && (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="Sign Out"
-                onClick={() => logout()}
-                disabled={isLoggingOut}
-                data-testid="button-sidebar-sign-out"
-              >
-                {isLoggingOut ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <LogOut className="w-4 h-4" />
-                )}
-                <span className="text-[13px]">{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="text-xs text-muted-foreground px-2">
+            {user.email}
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
