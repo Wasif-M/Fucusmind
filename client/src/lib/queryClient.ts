@@ -1,7 +1,12 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 // Use the API URL from environment variable, fallback to relative path for local dev
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL_RAW = import.meta.env.VITE_API_URL || '';
+// Remove trailing slash to avoid double slashes when concatenating with paths
+const API_URL = API_URL_RAW.replace(/\/$/, '');
+
+console.log("[API Config] VITE_API_URL raw:", API_URL_RAW);
+console.log("[API Config] API_URL final:", API_URL);
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
