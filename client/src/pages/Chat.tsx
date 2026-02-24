@@ -226,10 +226,22 @@ export default function Chat() {
     
     try {
       if (!activeConversationId) {
-        console.log("Creating new conversation...");
+        console.log("[Chat] Creating new conversation...");
         const res = await apiRequest("POST", "/api/chat/conversations", { title: input.slice(0, 40) });
-        const conv = await res.json();
-        console.log("Conversation created:", conv);
+        console.log("[Chat] Response received, content-type:", res.headers.get("content-type"));
+        
+        const text = await res.text();
+        console.log("[Chat] Raw response:", text.slice(0, 500));
+        
+        let conv;
+        try {
+          conv = JSON.parse(text);
+        } catch (parseError) {
+          console.error("[Chat] Failed to parse JSON. Response was HTML/text instead of JSON");
+          throw new Error("Server returned HTML instead of JSON. Check if API is properly configured.");
+        }
+        
+        console.log("[Chat] Conversation created:", conv);
         queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
         setActiveConversationId(conv.id);
         await sendToConversation(conv.id, input.trim());
@@ -237,10 +249,10 @@ export default function Chat() {
         await sendToConversation(activeConversationId, input.trim());
       }
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("[Chat] Error sending message:", error);
       setIsStreaming(false);
       setStreamingContent("");
-      alert("Failed to send message. Check console for details.");
+      alert(`Failed to send message: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -265,7 +277,8 @@ export default function Chat() {
 
     try {
       const url = getApiUrl(`/api/chat/${convId}/messages`);
-      console.log("Sending message to:", url);
+      console.log("[Chat] Sending message to:", url);
+      console.log("[Chat] Request body:", { content });
       
       const response = await fetch(url, {
         method: "POST",
@@ -274,10 +287,13 @@ export default function Chat() {
         credentials: "include",
       });
 
+      console.log("[Chat] Message response status:", response.status);
+      console.log("[Chat] Message response content-type:", response.headers.get("content-type"));
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API error ${response.status}:`, errorText);
-        throw new Error(`Failed to send message: ${response.status}`);
+        console.error(`[Chat] API error ${response.status}:`, errorText.slice(0, 500));
+        throw new Error(`Failed to send message: ${response.status} - ${errorText.slice(0, 100)}`);
       }
 
       const reader = response.body?.getReader();

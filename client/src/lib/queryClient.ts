@@ -16,12 +16,26 @@ export async function apiRequest(
   data?: unknown | undefined,
 ): Promise<Response> {
   const fullUrl = `${API_URL}${url}`;
+  console.log(`[API] ${method} ${fullUrl}`);
+  console.log(`[API] API_URL=${API_URL}, url=${url}`);
+  
   const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
+
+  console.log(`[API] Response status: ${res.status}, ok: ${res.ok}`);
+  console.log(`[API] Response headers:`, {
+    contentType: res.headers.get("content-type"),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`[API] Error response (${res.status}):`, text.slice(0, 500));
+    res.clone(); // Reset body for throwIfResNotOk
+  }
 
   await throwIfResNotOk(res);
   return res;
