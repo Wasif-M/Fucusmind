@@ -2,6 +2,8 @@ import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import { chatStorage } from "./storage";
 import { isAuthenticated } from "../auth/replitAuth";
+import { buildSystemPrompt, isResponseOnTopic } from "../../routes";
+import { storage } from "../../storage";
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
@@ -100,17 +102,68 @@ export function registerChatRoutes(app: Express): void {
       // Save user message
       await chatStorage.createMessage(conversationId, "user", content);
 
-      // Get conversation history for context
-      const messages = await chatStorage.getMessagesByConversation(conversationId);
-      const chatMessages = messages.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }));
+      // ═══ PRE-SCREEN: Check if user's message is wellness-related ═══
+      const REFUSAL_MSG = "I'm here specifically for your mental wellness journey. I'm not the best resource for that but I'd love to support you with stress, sleep, emotions, or personal growth. What's on your mind? 💚";
+      
+      const topicCheckResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a strict topic classifier. Respond ONLY with "yes" or "no".
+Is the following user message related to ANY of these topics: mental health, emotional wellbeing, stress, anxiety, sleep, relaxation, mindfulness, meditation, habits, focus, motivation, burnout, emotional regulation, resilience, personal growth, self-improvement, therapy, greetings/hellos, or asking about who you are?
 
-      // Set up SSE
+Respond "yes" if the message is about any of those topics, or is a greeting, or asks about you.
+Respond "no" if it is about anything else (cooking, weather, sports, coding, science, math, history, politics, news, entertainment, travel, finance, recipes, technology, general knowledge, etc).`
+          },
+          { role: "user", content: content }
+        ],
+        max_completion_tokens: 5,
+      });
+
+      const topicCheck = (topicCheckResponse.choices[0]?.message?.content || "").trim().toLowerCase();
+      console.log(`[Topic Check] User: "${content.slice(0, 80)}" → Result: "${topicCheck}"`);
+
+      // Set up SSE headers
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
+
+      // If message is off-topic, immediately refuse without calling OpenAI for a full response
+      if (topicCheck !== "yes") {
+        console.log("[BLOCKED] Off-topic message detected. Sending refusal.");
+        await chatStorage.createMessage(conversationId, "assistant", REFUSAL_MSG);
+        res.write(`data: ${JSON.stringify({ content: REFUSAL_MSG })}\n\n`);
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+        return;
+      }
+
+      // ═══ ON-TOPIC: Proceed with full AI response ═══
+      // Get conversation history for context
+      const messages = await chatStorage.getMessagesByConversation(conversationId);
+      
+      // Build system prompt with user profile and recent checkins
+      const userProfile = await storage.getUserProfile(userId);
+      const userCheckins = await storage.getCheckins(userId);
+      const systemPrompt = buildSystemPrompt(userProfile, userCheckins);
+      
+      // Build messages: system prompt + conversation history
+      const chatMessages: any[] = [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+      ];
+      
+      messages.forEach((m) => {
+        chatMessages.push({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        });
+      });
+
+      console.log("[Chat] On-topic. Sending to OpenAI with", chatMessages.length, "messages.");
 
       // Stream response from OpenAI
       const stream = await openai.chat.completions.create({

@@ -21,7 +21,6 @@ import FAQ from "@/pages/FAQ";
 import Blog, { BlogPost } from "@/pages/Blog";
 import WellbeingTips from "@/pages/WellbeingTips";
 import Press from "@/pages/Press";
-import Careers from "@/pages/Careers";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfUse from "@/pages/TermsOfUse";
 import CookiesPage from "@/pages/Cookies";
@@ -71,7 +70,6 @@ function MarketingRoutes() {
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/wellbeing-tips" component={WellbeingTips} />
       <Route path="/press" component={Press} />
-      <Route path="/careers" component={Careers} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={TermsOfUse} />
       <Route path="/cookies" component={CookiesPage} />

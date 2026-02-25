@@ -31,7 +31,7 @@ export default function Download() {
               <p className="text-[13px] text-[#6b6b80] leading-[1.7] mb-6">{platform.description}</p>
               {platform.available ? (
                 <a
-                  href="/api/login"
+                  href="/signup"
                   className="inline-flex items-center px-6 py-2.5 rounded-full text-sm font-medium text-white"
                   style={{ background: "linear-gradient(135deg, #9b6dff, #7c4dff)" }}
                   data-testid={`button-download-${platform.title.toLowerCase().replace(/\s+/g, '-')}`}

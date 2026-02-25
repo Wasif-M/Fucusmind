@@ -68,7 +68,7 @@ export default function Features() {
 
         <div className="text-center mt-16">
           <a
-            href="/api/login"
+            href="/signup"
             className="inline-flex items-center px-7 py-3 rounded-full text-sm font-medium text-white transition-all"
             style={{ background: "linear-gradient(135deg, #9b6dff, #7c4dff)" }}
             data-testid="link-features-cta"

@@ -617,6 +617,28 @@ export default function AudioSessions() {
     };
   }, []);
 
+  // Stop audio when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - stop all audio
+        soundGenerator.stopAll();
+        setPlayingSounds(new Set());
+        window.speechSynthesis.cancel();
+        setIsSessionPlaying(false);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const toggleSound = (soundId: string) => {
     const sound = AMBIENT_SOUNDS.find(s => s.id === soundId);
     if (!sound) return;

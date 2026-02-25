@@ -31,10 +31,22 @@ export async function setupVite(server: Server, app: Express) {
 
   app.use(vite.middlewares);
 
-  app.use("/{*path}", async (req, res, next) => {
-    const url = req.originalUrl;
+  // Middleware to serve HTML for non-API routes
+  app.use((req, res, next) => {
+    // Skip API routes and vite internal routes
+    if (req.path.startsWith("/api") || req.path.startsWith("/vite") || req.path.startsWith("/@")) {
+      return next();
+    }
 
-    try {
+    // Serve index.html for everything else (client-side routing)
+    serviceIndexHtml(req, res, next, vite).catch(next);
+  });
+}
+
+async function serviceIndexHtml(req: any, res: any, next: any, vite: any) {
+  const url = req.originalUrl;
+
+  try {
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "..",
@@ -54,5 +66,4 @@ export async function setupVite(server: Server, app: Express) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }
-  });
 }

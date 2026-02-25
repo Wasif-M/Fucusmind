@@ -1,4 +1,7 @@
 import { Link } from "wouter";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/lib/api-url";
 
 function FocusMindLogo({ size = 20 }: { size?: number }) {
   return (
@@ -29,7 +32,6 @@ const footerColumns = [
     { label: "Features", href: "/features" },
     { label: "About", href: "/about" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Download", href: "/download" },
   ]},
   { title: "Support", links: [
     { label: "Help Centre", href: "/help" },
@@ -41,7 +43,6 @@ const footerColumns = [
     { label: "Blog", href: "/blog" },
     { label: "Wellbeing Tips", href: "/wellbeing-tips" },
     { label: "Press", href: "/press" },
-    { label: "Careers", href: "/careers" },
   ]},
   { title: "Legal", links: [
     { label: "Privacy Policy", href: "/privacy" },
@@ -51,6 +52,65 @@ const footerColumns = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(getApiUrl("/api/subscribe"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorToast = toast({
+          title: "Error",
+          description: data.message || "Failed to subscribe",
+          variant: "destructive",
+        });
+        setTimeout(() => errorToast.dismiss(), 5000);
+        return;
+      }
+
+      const successToast = toast({
+        title: "Success",
+        description: "Check your email for a welcome message!",
+      });
+      setTimeout(() => successToast.dismiss(), 5000);
+
+      setEmail("");
+    } catch (error) {
+      console.error("Subscribe error:", error);
+      const errorToast = toast({
+        title: "Error",
+        description: "Failed to subscribe. Please try again.",
+        variant: "destructive",
+      });
+      setTimeout(() => errorToast.dismiss(), 5000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <footer className="border-t border-white/[0.08] pt-20 pb-8" style={{ fontFamily: "'Inter', sans-serif" }}>
       <div className="max-w-[1200px] mx-auto px-6">
@@ -63,20 +123,25 @@ export function Footer() {
               </div>
             </Link>
             <p className="text-[13px] text-[#6b6b80] italic mb-6">Feel clearer, live lighter.</p>
-            <div className="flex gap-2 mb-6">
+            <form className="flex gap-2 mb-6" onSubmit={handleSubscribe}>
               <input
                 type="email"
                 placeholder="Your Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 min-w-0 px-4 py-2.5 bg-white/[0.06] border border-white/[0.08] rounded-[10px] text-white text-[13px] outline-none focus:border-[#9b6dff] placeholder:text-[#6b6b80]"
                 data-testid="input-newsletter-email"
+                required
               />
               <button
-                className="px-5 py-2.5 bg-[#9b6dff] text-white border-none rounded-[10px] text-[13px] font-medium whitespace-nowrap transition-colors hover:bg-[#6b3fa0]"
+                type="submit"
+                disabled={isLoading}
+                className="px-5 py-2.5 bg-[#9b6dff] text-white border-none rounded-[10px] text-[13px] font-medium whitespace-nowrap transition-colors hover:bg-[#6b3fa0] disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="button-subscribe"
               >
-                Subscribe
+                {isLoading ? "Subscribing..." : "Subscribe"}
               </button>
-            </div>
+            </form>
             <div className="flex gap-4">
               {[
                 <svg key="fb" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>,
@@ -84,9 +149,9 @@ export function Footer() {
                 <svg key="yt" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.267 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg>,
                 <svg key="tw" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
               ].map((icon, i) => (
-                <a key={i} href="#" className="text-[#6b6b80] transition-colors hover:text-[#9b6dff]" aria-label="Social link" data-testid={`link-social-${i}`}>
+                <div key={i} className="text-[#6b6b80]" aria-label="Social icon" data-testid={`icon-social-${i}`}>
                   {icon}
-                </a>
+                </div>
               ))}
             </div>
           </div>

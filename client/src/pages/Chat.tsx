@@ -17,16 +17,16 @@ function FocusMindLogo({ size = 32 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
       <defs>
         <linearGradient id="chatLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#c9a6ff" />
-          <stop offset="100%" stopColor="#9b6dff" />
+          <stop offset="0%" stopColor="#e5d5ff" />
+          <stop offset="100%" stopColor="#d4b5ff" />
         </linearGradient>
       </defs>
       <circle cx="50" cy="50" r="44" stroke="url(#chatLogoGradient)" strokeWidth="5" fill="none" />
       <path d="M50 16 C44 28 40 36 50 44 C60 36 56 28 50 16Z" fill="url(#chatLogoGradient)" />
-      <path d="M33 26 C29 38 33 46 45 46 C45 38 39 30 33 26Z" fill="url(#chatLogoGradient)" opacity="0.9" />
-      <path d="M67 26 C71 38 67 46 55 46 C55 38 61 30 67 26Z" fill="url(#chatLogoGradient)" opacity="0.9" />
-      <path d="M20 50 Q30 56 40 50 Q32 60 20 56" fill="url(#chatLogoGradient)" opacity="0.8" />
-      <path d="M80 50 Q70 56 60 50 Q68 60 80 56" fill="url(#chatLogoGradient)" opacity="0.8" />
+      <path d="M33 26 C29 38 33 46 45 46 C45 38 39 30 33 26Z" fill="url(#chatLogoGradient)" opacity="0.95" />
+      <path d="M67 26 C71 38 67 46 55 46 C55 38 61 30 67 26Z" fill="url(#chatLogoGradient)" opacity="0.95" />
+      <path d="M20 50 Q30 56 40 50 Q32 60 20 56" fill="url(#chatLogoGradient)" opacity="0.9" />
+      <path d="M80 50 Q70 56 60 50 Q68 60 80 56" fill="url(#chatLogoGradient)" opacity="0.9" />
       <path d="M50 50 C50 50 40 62 40 72 C40 79 44.5 84 50 84 C55.5 84 60 79 60 72 C60 62 50 50 50 50Z" fill="url(#chatLogoGradient)" />
     </svg>
   );
@@ -89,6 +89,7 @@ export default function Chat() {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -135,13 +136,29 @@ export default function Chat() {
     }
   };
 
-  const speakText = (text: string) => {
+  const speakText = (text: string, messageId: number) => {
     if ('speechSynthesis' in window) {
+      // If already speaking this message, stop it
+      if (currentlySpeakingId === messageId) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        setCurrentlySpeakingId(null);
+        return;
+      }
+      
+      // Stop any currently playing audio
       window.speechSynthesis.cancel();
+      setCurrentlySpeakingId(messageId);
+      
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.1;
+      utterance.volume = 1.0;
       utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setCurrentlySpeakingId(null);
+      };
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -151,6 +168,32 @@ export default function Chat() {
       setLocation("/");
     }
   }, [user, authLoading, setLocation]);
+
+  // Stop audio when component unmounts or tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab is hidden - stop audio
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          setIsSpeaking(false);
+        }
+      }
+    };
+
+    // Listen to visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup on unmount
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      // Stop audio when leaving chat page
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+    };
+  }, []);
 
   const { data: conversations = [], isLoading: loadingConversations, error: conversationsError } = useQuery<Conversation[]>({
     queryKey: ["/api/chat/conversations"],
@@ -569,9 +612,9 @@ export default function Chat() {
                               )}
                             </button>
                             <button
-                              onClick={() => speakText(msg.content)}
-                              className={`p-1.5 rounded-lg hover:bg-white/10 transition-colors ${isSpeaking ? 'text-[#9b6dff]' : 'text-[#6b6b80]'}`}
-                              title="Read aloud"
+                              onClick={() => speakText(msg.content, msg.id)}
+                              className={`p-1.5 rounded-lg hover:bg-white/10 transition-colors ${currentlySpeakingId === msg.id ? 'text-[#9b6dff]' : 'text-[#6b6b80]'}`}
+                              title={currentlySpeakingId === msg.id ? "Stop reading" : "Read aloud"}
                             >
                               <Volume2 className="w-4 h-4" />
                             </button>

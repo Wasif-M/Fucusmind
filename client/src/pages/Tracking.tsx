@@ -743,7 +743,7 @@ export default function Tracking() {
         {/* Sleep-Mood Correlation */}
         <SleepMoodCorrelation checkins={sortedCheckins} />
 
-        <AIInsight latestCheckin={latestCheckin} />
+        <AIInsight latestCheckin={latestCheckin} exerciseCompletions={allCompletions} />
       </main>
     </div>
   );
