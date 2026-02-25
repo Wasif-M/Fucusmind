@@ -610,10 +610,15 @@ export default function AudioSessions() {
     soundGenerator.setVolume(vol);
   }, [masterVolume, isMuted]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - stop ALL audio sources
   useEffect(() => {
     return () => {
       soundGenerator.stopAll();
+      window.speechSynthesis.cancel();
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     };
   }, []);
 

@@ -191,6 +191,7 @@ export default function Chat() {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);
+        setCurrentlySpeakingId(null);
       }
     };
   }, []);
