@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
 import { getApiUrl } from "@/lib/api-url";
 
@@ -41,7 +41,6 @@ async function logout(): Promise<void> {
 }
 
 export function useAuth() {
-  const queryClient = useQueryClient();
   const { data: user, isLoading } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
@@ -52,15 +51,14 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      queryClient.clear();
+      // Navigate first via full reload — avoids brief 404 flash
+      // since clearing the cache would re-render with user=null
+      // while still on an authenticated route
       window.location.href = "/";
     },
     onError: (error) => {
       console.error("Logout error:", error);
-      // Still clear local data even if logout fails
-      queryClient.setQueryData(["/api/auth/user"], null);
-      queryClient.clear();
+      // Still redirect even if logout fails
       window.location.href = "/";
     },
   });
